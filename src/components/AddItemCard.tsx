@@ -72,13 +72,31 @@ export default function AddItemCard({ visible, onClose, listId }: Props) {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
 
           {/* Header */}
-          <View style={[styles.header, { borderBottomColor: colors.border }]}>
-            <TouchableOpacity onPress={() => { reset(); onClose(); }} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Text style={[styles.cancel, { fontSize: fonts.base }]}>Cancelar</Text>
+          <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.card }]}>
+            {/* Cancelar — texto simples, discreto */}
+            <TouchableOpacity
+              onPress={() => { reset(); onClose(); }}
+              style={styles.cancelBtn}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              activeOpacity={0.6}
+            >
+              <Text style={[styles.cancelText, { fontSize: 15 }]}>Cancelar</Text>
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, { fontSize: fonts.heading, color: colors.text }]}>Adicionar Item</Text>
-            <TouchableOpacity onPress={handleAdd} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Text style={[styles.addBtn, { fontSize: fonts.base }]}>Adicionar</Text>
+
+            {/* Título — tamanho fixo, 1 linha */}
+            <View style={styles.headerCenter}>
+              <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
+                🛒 Novo Item
+              </Text>
+            </View>
+
+            {/* Adicionar — pill colorido */}
+            <TouchableOpacity
+              onPress={handleAdd}
+              style={styles.addPill}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.addPillText}>+ Adicionar</Text>
             </TouchableOpacity>
           </View>
 
@@ -230,12 +248,42 @@ export default function AddItemCard({ visible, onClose, listId }: Props) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
   },
-  cancel: { color: '#6B7280', fontWeight: '600' },
-  headerTitle: { fontWeight: '700' },
-  addBtn: { color: COLORS.primary, fontWeight: '700' },
+  cancelBtn: {
+    minWidth: 80,
+  },
+  cancelText: {
+    color: '#94A3B8',
+    fontWeight: '500',
+  },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+    paddingHorizontal: 8,
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  addPill: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 99,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  addPillText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
   scroll: { padding: 20, paddingBottom: 50 },
   label: { fontWeight: '600', marginBottom: 8, marginTop: 16 },
   input: {
