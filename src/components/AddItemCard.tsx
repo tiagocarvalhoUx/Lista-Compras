@@ -116,7 +116,6 @@ export default function AddItemCard({ visible, onClose, listId }: Props) {
                 onChangeText={handleQtyChange}
                 onBlur={handleQtyBlur}
                 selectTextOnFocus
-                textAlign="center"
               />
 
               {/* Botão + */}
@@ -262,12 +261,14 @@ const styles = StyleSheet.create({
   },
   qtyBtnText: { fontWeight: '800', lineHeight: 36 },
   qtyInput: {
-    // Largura fixa para não esticar em telas grandes
     width: 90,
     height: 52,
     borderWidth: 2,
     borderRadius: 14,
     fontWeight: '700',
+    textAlign: 'center',
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
 
   // Categorias
