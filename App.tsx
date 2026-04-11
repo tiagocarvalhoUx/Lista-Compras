@@ -1,20 +1,24 @@
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import AppNavigator from './src/navigation/AppNavigator';
+import DesktopWrapper from './src/components/DesktopWrapper';
+import { useStore } from './src/store/useStore';
 
-export default function App() {
+function AppContent() {
+  const { settings } = useStore();
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <DesktopWrapper>
+      <StatusBar style={settings.theme === 'dark' ? 'light' : 'dark'} />
+      <AppNavigator />
+    </DesktopWrapper>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default function App() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <AppContent />
+    </GestureHandlerRootView>
+  );
+}
