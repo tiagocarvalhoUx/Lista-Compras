@@ -71,7 +71,7 @@ export default function ItemCard({ item }: ItemCardProps) {
             </Text>
           </View>
           <Text style={[styles.qty, { color: colors.subtext, fontSize: fonts.small }]}>
-            Qtd: {item.quantity}
+            {item.quantity} {item.unit ?? 'un'}
           </Text>
           {item.price != null && item.price > 0 && (
             <Text style={[styles.price, { color: colors.subtext, fontSize: fonts.small }]}>

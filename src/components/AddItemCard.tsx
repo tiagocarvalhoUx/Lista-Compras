@@ -8,7 +8,7 @@ import { useStore } from '../store/useStore';
 import { notifySuccess } from '../utils/haptics';
 import { useTheme } from '../hooks/useTheme';
 import { CATEGORIES } from '../constants/categories';
-import { CategoryId, RecurrenceType } from '../types';
+import { CategoryId, RecurrenceType, UnitType } from '../types';
 import { COLORS } from '../constants/theme';
 
 interface Props {
@@ -23,14 +23,25 @@ export default function AddItemCard({ visible, onClose, listId }: Props) {
 
   const [name, setName]           = useState('');
   const [quantity, setQuantity]   = useState('1');
+  const [unit, setUnit]           = useState<UnitType>('un');
   const [category, setCategory]   = useState<CategoryId>('other');
   const [price, setPrice]         = useState('');
   const [notes, setNotes]         = useState('');
   const [recurrence, setRecurrence] = useState<RecurrenceType>('none');
   const [advanced, setAdvanced]   = useState(false);
 
+  const UNITS: { value: UnitType; label: string; decimal: boolean }[] = [
+    { value: 'un', label: 'un',  decimal: false },
+    { value: 'g',  label: 'g',   decimal: false },
+    { value: 'kg', label: 'kg',  decimal: true  },
+    { value: 'ml', label: 'ml',  decimal: false },
+    { value: 'L',  label: 'L',   decimal: true  },
+  ];
+
+  const isDecimalUnit = UNITS.find(u => u.value === unit)?.decimal ?? false;
+
   const reset = () => {
-    setName(''); setQuantity('1'); setCategory('other');
+    setName(''); setQuantity('1'); setUnit('un'); setCategory('other');
     setPrice(''); setNotes(''); setRecurrence('none'); setAdvanced(false);
   };
 
@@ -39,7 +50,8 @@ export default function AddItemCard({ visible, onClose, listId }: Props) {
     notifySuccess();
     addItem({
       name: name.trim(),
-      quantity: parseInt(quantity) || 1,
+      quantity: parseFloat(quantity.replace(',', '.')) || 1,
+      unit,
       category,
       price: price ? parseFloat(price.replace(',', '.')) : undefined,
       notes: notes.trim() || undefined,
@@ -53,18 +65,27 @@ export default function AddItemCard({ visible, onClose, listId }: Props) {
 
   // Quantity handlers
   const handleQtyChange = (v: string) => {
-    // Permite campo vazio enquanto digita
-    const cleaned = v.replace(/[^0-9]/g, '');
+    const pattern = isDecimalUnit ? /[^0-9.,]/g : /[^0-9]/g;
+    const cleaned = v.replace(pattern, '').replace(',', '.');
     setQuantity(cleaned);
   };
 
   const handleQtyBlur = () => {
-    // Ao sair do campo, garante mínimo 1
-    if (!quantity || parseInt(quantity) < 1) setQuantity('1');
+    const val = parseFloat(quantity.replace(',', '.'));
+    if (!quantity || isNaN(val) || val < 0.001) setQuantity('1');
   };
 
-  const decrement = () => setQuantity(q => String(Math.max(1, parseInt(q || '1') - 1)));
-  const increment = () => setQuantity(q => String((parseInt(q || '0') || 0) + 1));
+  const decrement = () => {
+    const step = isDecimalUnit ? 0.5 : 1;
+    const cur = parseFloat(quantity.replace(',', '.')) || 1;
+    const next = Math.max(step, parseFloat((cur - step).toFixed(3)));
+    setQuantity(String(next));
+  };
+  const increment = () => {
+    const step = isDecimalUnit ? 0.5 : 1;
+    const cur = parseFloat(quantity.replace(',', '.')) || 0;
+    setQuantity(String(parseFloat((cur + step).toFixed(3))));
+  };
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
@@ -115,35 +136,76 @@ export default function AddItemCard({ visible, onClose, listId }: Props) {
             />
 
             {/* Quantidade — responsivo, digitação livre */}
-            <Text style={[styles.label, { fontSize: fonts.base, color: colors.subtext }]}>Quantidade</Text>
-            <View style={styles.qtyRow}>
-              {/* Botão − */}
-              <TouchableOpacity
-                style={[styles.qtyBtn, { backgroundColor: colors.card, borderColor: COLORS.primary }]}
-                onPress={decrement}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.qtyBtnText, { color: COLORS.primary, fontSize: fonts.heading + 4 }]}>−</Text>
-              </TouchableOpacity>
+            <View style={styles.qtyLabelRow}>
+              <Text style={[styles.label, { fontSize: fonts.base, color: colors.subtext, marginTop: 16, marginBottom: 8 }]}>Quantidade</Text>
+              <Text style={[styles.qtyLabelHint, { fontSize: fonts.small, color: colors.subtext }]}>
+                Selecione a unidade →
+              </Text>
+            </View>
 
-              {/* Campo numérico — largura fixa, digitação livre */}
-              <TextInput
-                style={[styles.qtyInput, { fontSize: fonts.heading, color: colors.text, backgroundColor: colors.card, borderColor: COLORS.primary }]}
-                keyboardType="number-pad"
-                value={quantity}
-                onChangeText={handleQtyChange}
-                onBlur={handleQtyBlur}
-                selectTextOnFocus
-              />
+            <View style={styles.qtySection}>
+              {/* Stepper */}
+              <View style={styles.qtyRow}>
+                {/* Botão − */}
+                <TouchableOpacity
+                  style={[styles.qtyBtn, { backgroundColor: colors.card, borderColor: COLORS.primary }]}
+                  onPress={decrement}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.qtyBtnText, { color: COLORS.primary, fontSize: fonts.heading + 4 }]}>−</Text>
+                </TouchableOpacity>
 
-              {/* Botão + */}
-              <TouchableOpacity
-                style={[styles.qtyBtn, { backgroundColor: COLORS.primary }]}
-                onPress={increment}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.qtyBtnText, { color: '#FFF', fontSize: fonts.heading + 4 }]}>+</Text>
-              </TouchableOpacity>
+                {/* Campo numérico — largura fixa, digitação livre */}
+                <TextInput
+                  style={[styles.qtyInput, { fontSize: fonts.heading, color: colors.text, backgroundColor: colors.card, borderColor: COLORS.primary }]}
+                  keyboardType={isDecimalUnit ? 'decimal-pad' : 'number-pad'}
+                  value={quantity}
+                  onChangeText={handleQtyChange}
+                  onBlur={handleQtyBlur}
+                  selectTextOnFocus
+                />
+
+                {/* Botão + */}
+                <TouchableOpacity
+                  style={[styles.qtyBtn, { backgroundColor: COLORS.primary }]}
+                  onPress={increment}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.qtyBtnText, { color: '#FFF', fontSize: fonts.heading + 4 }]}>+</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Seletor de unidade */}
+              <View style={styles.unitSelector}>
+                {UNITS.map((u) => {
+                  const active = unit === u.value;
+                  return (
+                    <TouchableOpacity
+                      key={u.value}
+                      onPress={() => {
+                        setUnit(u.value);
+                        // Reseta para valor inteiro se trocar p/ unidade sem decimal
+                        if (!u.decimal) {
+                          const cur = parseFloat(quantity.replace(',', '.')) || 1;
+                          setQuantity(String(Math.max(1, Math.round(cur))));
+                        }
+                      }}
+                      activeOpacity={0.75}
+                      style={[
+                        styles.unitChip,
+                        {
+                          backgroundColor: active ? COLORS.primary : colors.card,
+                          borderColor: active ? COLORS.primary : colors.border,
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.unitChipText, { color: active ? '#FFF' : colors.subtext, fontSize: fonts.small }]}>
+                        {u.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
 
             {/* Categoria */}
@@ -293,10 +355,46 @@ const styles = StyleSheet.create({
   notesInput: { height: 80 },
 
   // Quantidade
+  qtyLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+  },
+  qtyLabelHint: {
+    fontWeight: '400',
+    marginTop: 16,
+    marginBottom: 8,
+    fontStyle: 'italic',
+  },
+  qtySection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   qtyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+  },
+  unitSelector: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    justifyContent: 'flex-end',
+  },
+  unitChip: {
+    borderWidth: 1.5,
+    borderRadius: 99,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 40,
+  },
+  unitChipText: {
+    fontWeight: '700',
+    textAlign: 'center',
   },
   qtyBtn: {
     width: 52,

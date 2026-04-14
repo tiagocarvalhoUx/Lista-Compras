@@ -11,12 +11,15 @@ export type CategoryId =
 
 export type RecurrenceType = 'none' | 'weekly' | 'monthly';
 
+export type UnitType = 'un' | 'g' | 'kg' | 'ml' | 'L';
+
 export type SortType = 'category' | 'name' | 'date';
 
 export interface ShoppingItem {
   id: string;
   name: string;
   quantity: number;
+  unit: UnitType;
   category: CategoryId;
   price?: number;
   notes?: string;
