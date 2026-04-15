@@ -43,18 +43,35 @@ const OG_TAGS = `
     <meta name="twitter:image"       content="${IMAGE_URL}" />
 `;
 
-const distHtml = path.join(__dirname, '..', 'dist', 'index.html');
+const root    = path.join(__dirname, '..');
+const distDir = path.join(root, 'dist');
+const distHtml = path.join(distDir, 'index.html');
 
 if (!fs.existsSync(distHtml)) {
   console.error('[inject-og] dist/index.html não encontrado. Rode o build primeiro.');
   process.exit(1);
 }
 
+// Copia og-image.png para dist/ (expo export apaga o dist/ a cada build)
+const imageSrc  = path.join(root, 'assets', 'icon.png');
+const imageDest = path.join(distDir, 'og-image.png');
+if (fs.existsSync(imageSrc)) {
+  fs.copyFileSync(imageSrc, imageDest);
+  console.log('[inject-og] og-image.png copiado para dist/');
+} else {
+  console.warn('[inject-og] assets/icon.png não encontrado — og:image pode quebrar.');
+}
+
 let html = fs.readFileSync(distHtml, 'utf8');
 
-// Evita injeção dupla
+// Remove injeção anterior para re-injetar limpo
 if (html.includes('og:title')) {
-  console.log('[inject-og] Tags OG já presentes — nada a fazer.');
+  html = html.replace(/\n\s*<!-- Primary Meta Tags -->[\s\S]*?<!-- Twitter \/ X -->[\s\S]*?<\/meta>\s*\n/m, '\n');
+}
+
+// Se ainda contém og:title (remoção parcial), recomeça do zero
+if (html.includes('og:title')) {
+  console.log('[inject-og] Tags OG já presentes e não removíveis — abortando para não duplicar.');
   process.exit(0);
 }
 
