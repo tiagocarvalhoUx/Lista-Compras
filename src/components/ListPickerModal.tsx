@@ -92,7 +92,7 @@ export default function ListPickerModal({ visible, onClose }: Props) {
 
   return (
     <>
-      <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+      <Modal visible={visible} animationType="fade" onRequestClose={onClose}>
         <View style={[styles.container, { backgroundColor: colors.background }]}>
           <View style={[styles.header, { borderBottomColor: colors.border }]}>
             <Text style={[styles.title, { fontSize: fonts.heading, color: colors.text }]}>🛒 Minhas Listas</Text>
